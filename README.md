@@ -10,8 +10,8 @@ This example includes:
 * Activate the virtual enviaronment
   > `` \venv\Scripts\activate``
 * Install missing libraries
-* Run Streamlit app 
-  > ``streamlit run [app name]``
+* Run Streamlit example app 
+  > ``streamlit run src/view/streamlit_example.py``
 
 
 ## Useful links

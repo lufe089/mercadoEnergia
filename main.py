@@ -1,9 +1,14 @@
 """
 Punto de entrada del programa
 """
+from src.view.GUIConsola import GUIConsola
+
 
 def main():
-    print("Estoy corriendo")
+    objGUIConsola = GUIConsola()
+    objGUIConsola.dibujar_menu()
 
 
-main()
+"""LLamada al metodo main en Python"""
+if __name__ == '__main__':
+    main()

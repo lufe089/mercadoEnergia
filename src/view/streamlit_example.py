@@ -1,14 +1,16 @@
-import streamlit as st
-import pandas as pd
-import altair as alt
-
 from urllib.error import URLError
+
+import altair as alt
+import pandas as pd
+import streamlit as st
+
 
 @st.cache
 def get_UN_data():
     AWS_BUCKET_URL = "http://streamlit-demo-data.s3-us-west-2.amazonaws.com"
     df = pd.read_csv(AWS_BUCKET_URL + "/agri.csv.gz")
     return df.set_index("Region")
+
 
 try:
     df = get_UN_data()
@@ -28,8 +30,8 @@ try:
         )
         chart = (
             alt.Chart(data)
-            .mark_area(opacity=0.3)
-            .encode(
+                .mark_area(opacity=0.3)
+                .encode(
                 x="year:T",
                 y=alt.Y("Gross Agricultural Product ($B):Q", stack=None),
                 color="Region:N",

@@ -10,9 +10,10 @@ from pydataxm import *                           #Se realiza la importación de 
 import datetime as dt
 from pydataxm.pydataxm import ReadDB as apiXM    #Se importa la clase que invoca el servicio
 import pandas as pd
-from mercadoEnergia.src.Settings import ConsultasXMEnum
 
 # Configuracion de tres decimales en visualizacion
+from util.Settings import ConsultasXMEnum
+
 pd.options.display.float_format  = '{:,.3f}'.format
 
 """

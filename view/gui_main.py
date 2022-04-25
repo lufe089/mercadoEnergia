@@ -186,20 +186,9 @@ def main():
     col2.write("# Mercado de energía en Colombia")
     col2.markdown("Inspirado en proyecto de [Ángel Carballo](https://github.com/AngelCarballoCremades/Energy-Price-Dashboard/)")
 
-    # Welcome message
-    welcome = st.expander(label="Bienvenida", expanded=True)
-    with welcome:
-        st.markdown(print_welcome_text())
-        st.write("")
 
-    """
-    # Instructions message
-    instructions = st.expander(label="Instrucciones", expanded=False)
-    with instructions:
-        st.write(instructions_text())
 
-    st.write("###")  # Vertical space
-    """
+
     # Type of info to analyze
     st.sidebar.markdown("#Menú Principal*")
 
@@ -260,6 +249,13 @@ def main():
                              )"""
 
     if menu_selected == "About":
+        # Welcome message
+        welcome = st.expander(label="Bienvenida", expanded=True)
+        with welcome:
+            st.markdown(print_welcome_text())
+            st.write("")
+
+    elif menu_selected == "Consultas":
         col1, col2, col3 = st.columns(3)
 
         with col1:

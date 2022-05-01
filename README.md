@@ -7,7 +7,7 @@ This example includes:
 
 # ¿How to use it?
 * Install the **virtual environment** [VirtualEnvs](https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv)
-* Activate the virtual enviaronment
+* Activate the virtual environment
   > `` \venv\Scripts\activate``
 * Install missing libraries
 * Run Streamlit example app 

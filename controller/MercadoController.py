@@ -5,9 +5,6 @@ class MercadoController:
     def __init__(self) -> None:
         super().__init__()
 
-    def probar_hola(self):
-        pass
-
     def sumar_valores_hora(self, fila):
         """ Suma las columnas relacionadas con las horas y retorna el valor diario"""
         suma = 0.0

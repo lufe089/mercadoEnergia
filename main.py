@@ -1,9 +1,9 @@
 """
 Punto de entrada del programa
 """
-
-def main():
-    print("Estoy corriendo")
+from view.MainView import MainView
 
 
-main()
+if __name__ == "__main__":
+    gui = MainView()
+    gui.iniciar_GUI()

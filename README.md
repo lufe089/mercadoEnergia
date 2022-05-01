@@ -11,7 +11,7 @@ This example includes:
   > `` \venv\Scripts\activate``
 * Install missing libraries
 * Run Streamlit example app 
-  > ``streamlit run src/view/streamlit_example.py``
+  > ``streamlit run main.py``
 
 
 ## Useful links

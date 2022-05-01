@@ -1,6 +1,7 @@
 import streamlit as st
 from pydataxm.pydataxm import ReadDB
 from streamlit_option_menu import option_menu
+
 from controller.MercadoController import MercadoController
 from model.Consulta import Consulta
 from model.Metrica import Metrica
@@ -43,12 +44,10 @@ class MainView:
     def limpiar_opciones(self):
         # TODO verificar que esto no mate el programa
         self.consulta.is_agrupar_x_dia_gui = False
-        pass
 
     def convertir_df(self, df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
         return df.to_csv().encode('utf-8')
-        # return df.to_excel(r'prueba.xlsx')
 
     def _dibujar_lista_metricas(self):
         self.data_metricas = self.apiXML.inventario_metricas
@@ -78,63 +77,63 @@ class MainView:
 
         # Dibujar checkbox
         self._dibujar_lista_metricas()
-        self.mensaje = ""
         errores = False
+        resultados_df = None
 
         self.col3.write(f"Tipo de métrica : {self.consulta.metrica_selecccionada.tipo_metrica}")
         self.consulta.fecha_inicial = self.col1.date_input("Fecha inicial", self.consulta.fecha_inicial)
         self.consulta.fecha_final = self.col2.date_input("Fecha inicial", self.consulta.fecha_final)
 
         if self.consulta.es_consulta_horaria() and (self.consulta.fecha_final-self.consulta.fecha_inicial).days >= 30:
-            st.error("La consulta de métricas con valor Horario solo puede ser de 30 días")
+            st.error("La consulta de métricas con valor Horario es máximo 30 días, reduzca el rango de la consulta")
             errores = True
         else:
             errores = False
 
-        if self.consulta.es_consulta_horaria():
-            """En metricas horarias se transforman los valores a valores diarios"""
-            self.consulta.is_agrupar_x_dia_gui = self.col3.checkbox("Agrupar x dia")
-        else:
-            self.consulta.is_agrupar_x_dia_gui = False
+        if not errores:
+            if self.consulta.es_consulta_horaria():
+                """En metricas horarias se transforman los valores a valores diarios"""
+                self.consulta.is_agrupar_x_dia_gui = self.col3.checkbox("Agrupar x dia")
+            else:
+                self.consulta.is_agrupar_x_dia_gui = False
 
-        self.btn_buscar_gui = st.button('Consultar')
-        datos_encontrados = False
-        progreso_barra = None
+            self.btn_buscar_gui = st.button('Consultar')
+            datos_encontrados = False
+            progreso_barra = None
 
-        if self.btn_buscar_gui:
-            if not datos_encontrados:
-                progreso_barra = st.progress(0)
+            if self.btn_buscar_gui:
+                if not datos_encontrados:
+                    progreso_barra = st.progress(0)
 
-                resultados_df = self.apiXML.request_data(coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
-                                                     metrica=self.consulta.metrica_selecccionada.metrica_idx,
-                                                     start_date=self.consulta.fecha_inicial,
-                                                     end_date=self.consulta.fecha_final)
-                # Verifica que hayan resultados disponibles
-                if resultados_df.empty:
-                    mensaje = "No hay datos disponibles en la consulta"
-                    st.warning(mensaje)
-                else:
-                    datos_encontrados = True
-            if datos_encontrados:
-                progreso_barra.progress(100)
-                # Si se selecciona el control de valores diarios
-                if self.consulta.is_agrupar_x_dia_gui:
-                    resultados_df = self.controller.agrupar_horas_dias(resultados_df)
-                st.dataframe(data=resultados_df)
-                # nombre_archivo = f'large_df{str(self.fecha_inicial_gui)}-{str[self.fecha_final_gui]}.xlsx'
-                csv_data = self.convertir_df(resultados_df)
-                fecha_inicial_string = self.consulta.fecha_inicial.strftime('%d/%m/%Y')
-                fecha_final_string = self.consulta.fecha_final.strftime('%d/%m/%Y')
-                fechas = fecha_final_string + '-' + fecha_inicial_string
-                nombre_archivo = f'{self.consulta.metrica_seleccionada_id}{fechas}.csv'
-                st.download_button(
-                    label="Descargar data",
-                    data=csv_data,
-                    file_name=nombre_archivo,
-                    mime='text/csv',
-                )
+                    resultados_df = self.apiXML.request_data(coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
+                                                             metrica=self.consulta.metrica_selecccionada.metrica_idx,
+                                                             start_date=self.consulta.fecha_inicial,
+                                                             end_date=self.consulta.fecha_final)
+                    # Verifica que hayan resultados disponibles
+                    if resultados_df.empty:
+                        mensaje = "No hay datos disponibles en la consulta"
+                        st.warning(mensaje)
+                    else:
+                        datos_encontrados = True
+                if datos_encontrados:
+                    progreso_barra.progress(100)
+                    # Si se selecciona el control de valores diarios
+                    if self.consulta.is_agrupar_x_dia_gui:
+                        resultados_df = self.controller.agrupar_horas_dias(resultados_df)
+                    st.dataframe(data=resultados_df)
+                    csv_data = self.convertir_df(resultados_df)
+                    fecha_inicial_string = self.consulta.fecha_inicial.strftime('%d/%m/%Y')
+                    fecha_final_string = self.consulta.fecha_final.strftime('%d/%m/%Y')
+                    fechas = fecha_final_string + '-' + fecha_inicial_string
+                    nombre_archivo = f'{self.consulta.metrica_seleccionada_id}{fechas}.csv'
+                    st.download_button(
+                        label="Descargar data",
+                        data=csv_data,
+                        file_name=nombre_archivo,
+                        mime='text/csv',
+                    )
 
-    def iniciar_GUI(self):
+    def controlar_menu(self):
         # Filtro opciones de menu
         if self.menu_actual == "About":
             # Welcome message
@@ -151,4 +150,4 @@ class MainView:
 # Main call
 if __name__ == "__main__":
     gui = MainView()
-    gui.iniciar_GUI()
+    gui.controlar_menu()

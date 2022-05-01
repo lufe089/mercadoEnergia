@@ -5,6 +5,7 @@ __pycache__/
 controller/__pycache__/
 controller/__pycache__/MercadoController.cpython-310.pyc
 controller/__pycache__/__init__.cpython-310.pyc
+
 # C extensions
 *.so
 

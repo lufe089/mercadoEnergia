@@ -65,6 +65,7 @@ class MainView:
                                    nombre_coleccion=self.consulta.coleccion_id, metrica_idx=idx_metrica)
             self.consulta.metricas[metrica_temp.nombre_metrica] = metrica_temp
             submetricas.append(metrica_data[1])
+            idx_metrica +=1
             # elf.metricas_list_data[metrica_data[1]] = {"agente": metrica_data[2], "tipoMetrica": metrica_data[3],
             # "parametro_llamada": metrica_data[0]}
 
@@ -122,6 +123,8 @@ class MainView:
                         resultados_df = self.controller.agrupar_horas_dias(resultados_df)
                     st.dataframe(data=resultados_df)
                     csv_data = self.convertir_df(resultados_df)
+                    #resultados_df = resultados_df[['Daily_Sum']]
+                    #st.line_chart(resultados_df)
                     fecha_inicial_string = self.consulta.fecha_inicial.strftime('%d/%m/%Y')
                     fecha_final_string = self.consulta.fecha_final.strftime('%d/%m/%Y')
                     fechas = fecha_final_string + '-' + fecha_inicial_string

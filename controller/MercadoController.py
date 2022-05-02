@@ -27,4 +27,7 @@ class MercadoController:
 
         # Values_code tiene el codigo que indica el elemento principal de consulta
         output_df = output_df[['Values_code', 'Date', 'Daily_Sum']]
+
+        # Poner la fecha como el indice
+        output_df.set_index('Date', inplace=True)
         return output_df

@@ -3,4 +3,4 @@ openpyxl
 pandas
 streamlit>=1.8.1
 streamlit-option-menu>=0.3.2
-pydataxm
+pydataxm == 0.2.6

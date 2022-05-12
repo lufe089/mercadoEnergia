@@ -1,6 +1,3 @@
-from model.MyException import MyException
-
-
 class Metrica:
     def __init__(self, nombre_metrica, tipo_metrica, parametro_llamada, entidad, nombre_coleccion, metrica_idx) -> None:
         super().__init__()

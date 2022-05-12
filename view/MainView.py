@@ -5,6 +5,7 @@ from streamlit_option_menu import option_menu
 from controller.MercadoController import MercadoController
 from model.Consulta import Consulta
 from model.Metrica import Metrica
+from model.MyException import MyException
 from view.AboutPartial import *
 
 
@@ -38,7 +39,7 @@ class MainView:
 
         # Define lo que abrá en la barra de menu
         with st.sidebar:
-            self.menu_actual = option_menu("Menu", ["About", '[Métricas]Consultas sencillas'],
+            self.menu_actual = option_menu("Menu", ["About", '[Métricas]Consultas sencillas', 'PruebaExcepcion'],
                                            icons=['house', 'gear'], menu_icon="cast", default_index=1)
 
     def limpiar_opciones(self):
@@ -120,7 +121,11 @@ class MainView:
                     progreso_barra.progress(100)
                     # Si se selecciona el control de valores diarios
                     if self.consulta.is_agrupar_x_dia_gui:
-                        resultados_df = self.controller.agrupar_horas_dias(resultados_df)
+                        try:
+                            resultados_df = self.controller.agrupar_horas_dias(resultados_df)
+                        except ValueError as ex:
+                            # Muestra el mensaje en pantalla
+                            st.error(str(ex))
                     st.dataframe(data=resultados_df)
                     csv_data = self.convertir_df(resultados_df)
                     #resultados_df = resultados_df[['Daily_Sum']]
@@ -135,6 +140,7 @@ class MainView:
                         file_name=nombre_archivo,
                         mime='text/csv',
                     )
+
 
     def controlar_menu(self):
         # Filtro opciones de menu

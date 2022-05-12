@@ -120,7 +120,11 @@ class MainView:
                     progreso_barra.progress(100)
                     # Si se selecciona el control de valores diarios
                     if self.consulta.is_agrupar_x_dia_gui:
-                        resultados_df = self.controller.agrupar_horas_dias(resultados_df)
+                        try:
+                            resultados_df = self.controller.agrupar_horas_dias(resultados_df)
+                        except ValueError as ex:
+                            # Muestra el mensaje en pantalla
+                            st.error(str(ex))
                     st.dataframe(data=resultados_df)
                     csv_data = self.convertir_df(resultados_df)
                     #resultados_df = resultados_df[['Daily_Sum']]
@@ -135,6 +139,7 @@ class MainView:
                         file_name=nombre_archivo,
                         mime='text/csv',
                     )
+
 
     def controlar_menu(self):
         # Filtro opciones de menu

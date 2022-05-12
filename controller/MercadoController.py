@@ -1,3 +1,4 @@
+import logging
 
 from pydataxm.pydataxm import ReadDB as apiXM
 
@@ -8,10 +9,14 @@ class MercadoController:
     def sumar_valores_hora(self, fila):
         """ Suma las columnas relacionadas con las horas y retorna el valor diario"""
         suma = 0.0
+
         # Suma las columnas de  las horas desde la hora 1 hasta la hora 24 aprovechando el indice que propone pandas
         for i in range(2, 26):
-            suma = suma + fila[i]
-
+            if  isinstance(fila[i],int):
+                suma = suma + fila[i]
+            else:
+                # Algunos de los datos no son de tipo entero por ejemplo hay N/A
+                raise ValueError("No es posible agrupar el resultado de la consulta por días")
         return suma
 
     def agrupar_horas_dias(self,input_df):

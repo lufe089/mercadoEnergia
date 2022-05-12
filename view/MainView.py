@@ -5,6 +5,7 @@ from streamlit_option_menu import option_menu
 from controller.MercadoController import MercadoController
 from model.Consulta import Consulta
 from model.Metrica import Metrica
+from model.MyException import MyException
 from view.AboutPartial import *
 
 
@@ -38,7 +39,7 @@ class MainView:
 
         # Define lo que abrá en la barra de menu
         with st.sidebar:
-            self.menu_actual = option_menu("Menu", ["About", '[Métricas]Consultas sencillas'],
+            self.menu_actual = option_menu("Menu", ["About", '[Métricas]Consultas sencillas', 'PruebaExcepcion'],
                                            icons=['house', 'gear'], menu_icon="cast", default_index=1)
 
     def limpiar_opciones(self):

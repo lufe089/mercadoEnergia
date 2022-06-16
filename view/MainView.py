@@ -1,3 +1,5 @@
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from pydataxm.pydataxm import ReadDB
 from streamlit_option_menu import option_menu
@@ -68,7 +70,7 @@ class MainView:
                                    nombre_coleccion=self.consulta.coleccion_id, metrica_idx=idx_metrica)
             self.consulta.metricas[metrica_temp.nombre_metrica] = metrica_temp
             submetricas.append(metrica_data[1])
-            idx_metrica +=1
+            idx_metrica += 1
             # elf.metricas_list_data[metrica_data[1]] = {"agente": metrica_data[2], "tipoMetrica": metrica_data[3],
             # "parametro_llamada": metrica_data[0]}
 
@@ -87,6 +89,39 @@ class MainView:
             # datos
             st.info(datos_coleccion)
 
+    def dibujar_grafico_resumen(self, df, nombre_metrica, nombre_coleccion, fecha_inicial, fecha_final, entidad):
+
+        # Validar si existe el campu value de tipo numerico y el campo fecha para hacer el grafico resumen, por ahora estos graficos son solamente para consultas de sistema
+        if entidad == "Sistema" and 'Value' in df.columns and 'Date' in df.columns:
+            chart_data = df[['Date', 'Value']]
+            if self.controller.coleccion_info_dic.get(nombre_coleccion):
+
+                # INFO sobre la libreria https://plotly.com/python/line-charts/
+                datos_coleccion = self.controller.coleccion_info_dic.get(nombre_coleccion)
+                fig = go.Figure()
+
+                fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Value'],
+                                         mode='lines+markers', name='markers'))
+
+                annotations = []
+
+                #Ajustes respecto al titulo
+                annotations.append(dict(xref='paper', yref='paper', x=0.5, y=1.05,
+                                        xanchor='center', yanchor='bottom',
+                                        text=f"Resumen {nombre_metrica}: [{fecha_inicial}- {fecha_final}]",
+                                        font=dict(family='Arial',
+                                                  size=25,
+                                                  color='rgb(37,37,37)'),
+                                        showarrow=False))
+
+                fig.update_layout(xaxis_title='Mes',
+                                  yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})', annotations=annotations)
+
+                #fig = px.line(df, x="Date", y="Value", markers=True, xaxis_title='Mes',
+                              #title=f"{nombre_metrica} [{fecha_inicial}- {fecha_final}]",
+                              #yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})')
+                st.plotly_chart(fig, use_container_width=True)
+
     def dibujar_consulta_metricas(self):
 
         # Dibujar checkbox
@@ -98,7 +133,7 @@ class MainView:
         self.consulta.fecha_inicial = self.col1.date_input("Fecha inicial", self.consulta.fecha_inicial)
         self.consulta.fecha_final = self.col2.date_input("Fecha inicial", self.consulta.fecha_final)
 
-        if self.consulta.es_consulta_horaria() and (self.consulta.fecha_final-self.consulta.fecha_inicial).days >= 30:
+        if self.consulta.es_consulta_horaria() and (self.consulta.fecha_final - self.consulta.fecha_inicial).days >= 30:
             st.error("La consulta de métricas con valor Horario es máximo 30 días, reduzca el rango de la consulta")
             errores = True
         else:
@@ -107,7 +142,7 @@ class MainView:
         if not errores:
             if self.consulta.es_consulta_horaria():
                 """En metricas horarias se transforman los valores a valores diarios"""
-                self.consulta.is_agrupar_x_dia_gui = self.col3.checkbox("Agrupar x dia")
+                self.consulta.is_agrupar_x_dia_gui = self.col3.checkbox(label="Agrupar x dia", value=True)
             else:
                 self.consulta.is_agrupar_x_dia_gui = False
 
@@ -122,10 +157,11 @@ class MainView:
                 if not datos_encontrados:
                     progreso_barra = st.progress(0)
 
-                    resultados_df = self.apiXML.request_data(coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
-                                                             metrica=self.consulta.metrica_selecccionada.metrica_idx,
-                                                             start_date=self.consulta.fecha_inicial,
-                                                             end_date=self.consulta.fecha_final)
+                    resultados_df = self.apiXML.request_data(
+                        coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
+                        metrica=self.consulta.metrica_selecccionada.metrica_idx,
+                        start_date=self.consulta.fecha_inicial,
+                        end_date=self.consulta.fecha_final)
                     # Verifica que hayan resultados disponibles
                     if resultados_df.empty:
                         mensaje = "No hay datos disponibles en la consulta"
@@ -142,10 +178,19 @@ class MainView:
                             # Muestra el mensaje en pantalla
                             st.error(str(ex))
 
+                    # Grafica el resultado
+                    self.dibujar_grafico_resumen(resultados_df,
+                                                 nombre_metrica=self.consulta.metrica_selecccionada.nombre_metrica,
+                                                 nombre_coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
+                                                 fecha_inicial=self.consulta.fecha_inicial,
+                                                 fecha_final=self.consulta.fecha_final, entidad = self.consulta.metrica_selecccionada.entidad )
+
+                    # Muestra los datos en tablas
+                    st.subheader('Detalles')
                     st.dataframe(data=resultados_df)
                     csv_data = self.convertir_df(resultados_df)
-                    #resultados_df = resultados_df[['Daily_Sum']]
-                    #st.line_chart(resultados_df)
+                    # resultados_df = resultados_df[['Daily_Sum']]
+                    # st.line_chart(resultados_df)
                     fecha_inicial_string = self.consulta.fecha_inicial.strftime('%d/%m/%Y')
                     fecha_final_string = self.consulta.fecha_final.strftime('%d/%m/%Y')
                     fechas = fecha_final_string + '-' + fecha_inicial_string
@@ -156,7 +201,6 @@ class MainView:
                         file_name=nombre_archivo,
                         mime='text/csv',
                     )
-
 
     def controlar_menu(self):
         # Filtro opciones de menu

@@ -184,7 +184,6 @@ class MainView:
                                                  nombre_coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
                                                  fecha_inicial=self.consulta.fecha_inicial,
                                                  fecha_final=self.consulta.fecha_final, entidad = self.consulta.metrica_selecccionada.entidad )
-
                     # Muestra los datos en tablas
                     st.subheader('Detalles')
                     st.dataframe(data=resultados_df)

@@ -16,6 +16,7 @@ class Consulta:
         self.metrica_seleccionada_id = ""
         self.metrica_selecccionada = None
 
+
     def es_consulta_horaria(self):
         """ Identifica si la consulta es horaria pues segun eso la GUI pintara algo diferente"""
         if self.metricas[self.metrica_seleccionada_id].tipo_metrica  == "Horaria":

@@ -20,6 +20,9 @@ class MainView:
             self.btn_buscar_gui = False
             self.controller = MercadoController()
 
+            # Consulta información de todas las metricas
+            self.controller.construir_info_metricas()
+
             st.session_state['main_view'] = self
         else:
             self.menu_actual = st.session_state.main_view.menu_actual
@@ -74,6 +77,16 @@ class MainView:
             submetricas)
         self.consulta.metrica_selecccionada = self.consulta.metricas[self.consulta.metrica_seleccionada_id]
 
+    def dibujar_info_coleccion(self, nombre_coleccion):
+        """Dibuja informacion de la colección como la descripcion de loq ue consulta, la cantidad maxima de dias de consulta
+         y la unidad de medida de los resultados"""
+        if self.controller.coleccion_info_dic.get(nombre_coleccion):
+            datos_coleccion = self.controller.coleccion_info_dic.get(nombre_coleccion)
+
+            # Al sobreescribir el metodo str entonces aqui se imprimen directamente los valores con el formato que sea interesante para losd
+            # datos
+            st.info(datos_coleccion)
+
     def dibujar_consulta_metricas(self):
 
         # Dibujar checkbox
@@ -103,6 +116,9 @@ class MainView:
             progreso_barra = None
 
             if self.btn_buscar_gui:
+                # Muestra detalles sobre la coleccion como la info que consulta y los valores de resultado
+                self.dibujar_info_coleccion(self.consulta.metrica_selecccionada.nombre_coleccion)
+
                 if not datos_encontrados:
                     progreso_barra = st.progress(0)
 
@@ -125,6 +141,7 @@ class MainView:
                         except ValueError as ex:
                             # Muestra el mensaje en pantalla
                             st.error(str(ex))
+
                     st.dataframe(data=resultados_df)
                     csv_data = self.convertir_df(resultados_df)
                     #resultados_df = resultados_df[['Daily_Sum']]

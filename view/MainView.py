@@ -1,3 +1,4 @@
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
@@ -91,36 +92,73 @@ class MainView:
 
     def dibujar_grafico_resumen(self, df, nombre_metrica, nombre_coleccion, fecha_inicial, fecha_final, entidad):
 
-        # Validar si existe el campu value de tipo numerico y el campo fecha para hacer el grafico resumen, por ahora estos graficos son solamente para consultas de sistema
-        if entidad == "Sistema" and 'Value' in df.columns and 'Date' in df.columns:
-            chart_data = df[['Date', 'Value']]
+
+        # Validar si existe el campu value de tipo numerico y el campo fecha para hacer el grafico resumen
+        if 'Value' in df.columns and 'Date' in df.columns:
+            chart_data_df = pd.DataFrame()
+            if 'Name' in df.columns:
+                  #chart_data_df.loc[:,'Name'] = df.loc[:,'Name']
+                  chart_data_df['Name'] = df['Name']
+            chart_data_df['Date'] =  df['Date']
+            chart_data_df['Value'] = df['Value']
+
+            # se buscan  datos de la metrica en la coleccion como la unidad de medida y el nombre de la colección
             if self.controller.coleccion_info_dic.get(nombre_coleccion):
 
                 # INFO sobre la libreria https://plotly.com/python/line-charts/
                 datos_coleccion = self.controller.coleccion_info_dic.get(nombre_coleccion)
                 fig = go.Figure()
+                if 'Name' in chart_data_df.columns:
 
-                fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Value'],
-                                         mode='lines+markers', name='markers'))
-
+                    # Consulta los nombres de las posibles series y luego para cada uno agrega la serie al gráfico
+                    nombres_series_grafico = chart_data_df['Name'].unique()
+                    for nombre in nombres_series_grafico:
+                        serie_grafico_df = chart_data_df.query("Name == @nombre")
+                        fig.add_trace(go.Scatter(x=serie_grafico_df['Date'], y=serie_grafico_df['Value'], name = nombre,
+                                                 mode='lines+markers'))
+                else:
+                    # Agrega una unica serie al grafico que tendra los valores agrupados
+                    fig.add_trace(go.Scatter(x=chart_data_df['Date'], y=chart_data_df['Value'],
+                                         mode='lines+markers',line= dict(dash='dashdot')) )
                 annotations = []
-
                 #Ajustes respecto al titulo
                 annotations.append(dict(xref='paper', yref='paper', x=0.5, y=1.05,
                                         xanchor='center', yanchor='bottom',
-                                        text=f"Resumen {nombre_metrica}: [{fecha_inicial}- {fecha_final}]",
+                                        text=f"Resumen {nombre_metrica}: [{fecha_inicial} / {fecha_final}]",
                                         font=dict(family='Arial',
                                                   size=25,
                                                   color='rgb(37,37,37)'),
                                         showarrow=False))
+                # Sobre leyendas
+                #https://plotly.com/python/legend/
 
+                # Configura el grafico. Detalles aqui: https://plotly.com/python/configuration-options/#removing-modebar-buttons
                 fig.update_layout(xaxis_title='Mes',
-                                  yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})', annotations=annotations)
+                                  yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})', annotations=annotations,
+                                  newshape_line_color='red',
+                                  modebar_add=['drawline',
+                                               'drawcircle',
+                                               'drawrect',
+                                               'eraseshape'
+                                               ],
+                                  )
 
                 #fig = px.line(df, x="Date", y="Value", markers=True, xaxis_title='Mes',
                               #title=f"{nombre_metrica} [{fecha_inicial}- {fecha_final}]",
                               #yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})')
                 st.plotly_chart(fig, use_container_width=True)
+
+    def ajustar_dataframe_resultado(self,df):
+
+        # Cuando la entindad no es sistema los datos estan agrupados en algunas consultas por la columna Values_code y en otra por la columna Name
+        # en esta condición se unifica el nombre de la columna para facilitar la elaboración del gráfico
+        if 'Values_code' in df.columns:
+            # chart_data.loc[:,'Name'] = df.loc[:,'Values_code']
+            df.rename(columns={'Values_code': 'Name'}, inplace=True)
+        if 'Code' in df.columns:
+            # chart_data.loc[:,'Name'] = df.loc[:,'Values_code']
+            df.rename(columns={'Code': 'Name'}, inplace=True)
+        return df
 
     def dibujar_consulta_metricas(self):
 
@@ -178,12 +216,20 @@ class MainView:
                             # Muestra el mensaje en pantalla
                             st.error(str(ex))
 
+                    # Ajusta columnas para facilitar el dibujo de las graficas
+                    resultados_df = self.ajustar_dataframe_resultado(resultados_df)
+
                     # Grafica el resultado
-                    self.dibujar_grafico_resumen(resultados_df,
-                                                 nombre_metrica=self.consulta.metrica_selecccionada.nombre_metrica,
-                                                 nombre_coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
-                                                 fecha_inicial=self.consulta.fecha_inicial,
-                                                 fecha_final=self.consulta.fecha_final, entidad = self.consulta.metrica_selecccionada.entidad )
+                    try:
+                        self.dibujar_grafico_resumen(resultados_df,
+                                                     nombre_metrica=self.consulta.metrica_selecccionada.nombre_metrica,
+                                                     nombre_coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
+                                                     fecha_inicial=self.consulta.fecha_inicial,
+                                                     fecha_final=self.consulta.fecha_final, entidad = self.consulta.metrica_selecccionada.entidad )
+                    except ValueError as ex:
+                        # Muestra el mensaje en pantalla
+                        st.error("Los datos recibidos no permiten dibujar gráfico resumen")
+                        print((ex.__str__()))
                     # Muestra los datos en tablas
                     st.subheader('Detalles')
                     st.dataframe(data=resultados_df)

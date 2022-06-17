@@ -3,7 +3,11 @@ import json
 import pandas as pd
 import datetime as dt
 
+from numpy import ceil
+from pydataxm.pydataxm import ReadDB
+
 from model.Coleccion import Coleccion
+from model.Consulta import Consulta
 from model.Metrica import Metrica
 
 
@@ -11,6 +15,8 @@ class MercadoController:
     def __init__(self) -> None:
         super().__init__()
         self.coleccion_info_dic = {}
+        self.consulta = Consulta()
+        self.apiXML = ReadDB()
 
     def construir_info_metricas(self):
         url = f'http://servapibi.xm.com.co/lists'
@@ -20,7 +26,6 @@ class MercadoController:
         connection = requests.post(url, json=request)
         data_json = json.loads(connection.content)
         df_colecciones = pd.json_normalize(data_json['Items'], 'ListEntities', 'Date', sep='_')
-        print(df_colecciones)
 
         for i in range(len(df_colecciones)):
             metricaTemp= Coleccion(nombre_coleccion= df_colecciones.loc[i,"Values_MetricName"],
@@ -57,3 +62,29 @@ class MercadoController:
         # Poner la fecha como el indice
         # output_df.set_index('Date', inplace=True)
         return output_df
+
+    def consultar_metricas_XM(self):
+        return self.apiXML.inventario_metricas
+
+    def consultar_datos_XM(self, dias_consultados, max_dias_consulta):
+
+        # Calcula la cantidad de llamadas que requiere la API
+        cantidad_consultas_api = int(ceil(dias_consultados/max_dias_consulta))
+
+        #Convierte el numero en un timedelta para usarlo en sumas
+        max_dias_consulta =  dt.timedelta(days=int(max_dias_consulta))
+        resultados_df = pd.DataFrame()
+        print("Inicia la consulta")
+        fecha_inicial_temp = self.consulta.fecha_inicial
+        for i in range(cantidad_consultas_api):
+            fecha_final_temp = fecha_inicial_temp + max_dias_consulta
+            df_parcial = self.apiXML.request_data(
+                coleccion=self.consulta.metrica_selecccionada.nombre_coleccion,
+                metrica=self.consulta.metrica_selecccionada.metrica_idx,
+                start_date=fecha_inicial_temp,
+                end_date=fecha_final_temp)
+            resultados_df = pd.concat([resultados_df, df_parcial])
+            # Incrementa en uno para comenzar el siguiente rango y no repetir con el rango anterior
+            # Avanza al siguiente rango de fechas
+            fecha_inicial_temp = fecha_final_temp + dt.timedelta(days=1)
+        return resultados_df

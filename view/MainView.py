@@ -133,7 +133,7 @@ class MainView:
                 #https://plotly.com/python/legend/
 
                 # Configura el grafico. Detalles aqui: https://plotly.com/python/configuration-options/#removing-modebar-buttons
-                fig.update_layout(xaxis_title='Mes',
+                fig.update_layout(xaxis_title='Fecha',
                                   yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})', annotations=annotations,
                                   newshape_line_color='red',
                                   modebar_add=['drawline',

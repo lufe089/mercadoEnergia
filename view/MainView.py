@@ -132,10 +132,13 @@ class MainView:
                 # Sobre leyendas
                 #https://plotly.com/python/legend/
 
+                # Sobre shapes
+                #https://plotly.com/python/shapes/
+
                 # Configura el grafico. Detalles aqui: https://plotly.com/python/configuration-options/#removing-modebar-buttons
                 fig.update_layout(xaxis_title='Fecha',
                                   yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})', annotations=annotations,
-                                  newshape_line_color='red',
+                                  newshape=dict(line_color='red', line_width=1),
                                   modebar_add=['drawline',
                                                'drawcircle',
                                                'drawrect',

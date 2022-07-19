@@ -12,6 +12,8 @@ class Consulta:
         self.tipo_metrica = ""
         self.resultados_busqueda =None
         self.is_agrupar_x_dia_gui = False
+        self.is_agrupar_x_mes_gui = False
+        self.opc_agrup_result = None
         self.metricas = {}
         self.metrica_seleccionada_id = ""
         self.metrica_selecccionada = None

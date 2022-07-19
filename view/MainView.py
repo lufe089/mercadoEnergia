@@ -47,7 +47,7 @@ class MainView:
 
     def convertir_df(self, df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv().encode('utf-8')
+        return df.to_csv(encoding = 'utf-8', decimal=',')
 
     def _dibujar_lista_metricas(self):
         self.data_metricas = self.controller.consultar_metricas_XM()
@@ -98,7 +98,9 @@ class MainView:
 
                 # INFO sobre la libreria https://plotly.com/python/line-charts/
                 datos_coleccion = self.controller.coleccion_info_dic.get(nombre_coleccion)
-                fig = go.Figure()
+                layout = go.Layout(separators=", ")
+                fig = go.Figure(layout = layout)
+
                 if 'Name' in chart_data_df.columns:
 
                     # Consulta los nombres de las posibles series y luego para cada uno agrega la serie al gráfico
@@ -142,6 +144,12 @@ class MainView:
                               #yaxis_title=f'{nombre_metrica}({datos_coleccion.unidades_metrica})')
                 st.plotly_chart(fig, use_container_width=True)
 
+    def __ajustar_decimales_y_miles(self,value):
+        value = round(value, 2)
+        formated_value = "{:,}".format(value).replace(',', '~').replace('.', ',').replace('~', '')
+        return formated_value
+
+
     def ajustar_dataframe_resultado(self,df):
 
         """ Cuando la entidad no es sistema los datos estan agrupados en algunas consultas por la columna Values_code y en otra por la columna Name
@@ -153,7 +161,21 @@ class MainView:
         if 'Code' in df.columns:
             # chart_data.loc[:,'Name'] = df.loc[:,'Values_code']
             df.rename(columns={'Code': 'Name'}, inplace=True)
+
+        # convierte el . en , para interpretar la parte decimal como se hace en español
+        df['Value'] = df['Value'].apply(lambda x: self.__ajustar_decimales_y_miles(x))
         return df
+
+    def dibujar_opc_agrupar(self, es_mas_de_un_mes):
+        opciones = []
+        #if es_mas_de_un_mes:
+           # opciones.append("Mes")
+        if  self.controller.consulta.es_consulta_horaria():
+            """En metricas horarias se transforman los valores a valores diarios"""
+            opciones.append("Dia")
+        opciones.append("Ninguno")
+        self.controller.consulta.opc_agrup_result = self.col3.radio("Agrupar por:",opciones)
+
 
     def dibujar_consulta_metricas(self):
 
@@ -165,20 +187,19 @@ class MainView:
         self.controller.consulta.fecha_inicial = self.col1.date_input("Fecha inicial", self.controller.consulta.fecha_inicial)
         self.controller.consulta.fecha_final = self.col2.date_input("Fecha inicial", self.controller.consulta.fecha_final)
 
-        if self.controller.consulta.es_consulta_horaria():
-            """En metricas horarias se transforman los valores a valores diarios"""
-            self.controller.consulta.is_agrupar_x_dia_gui = self.col3.checkbox(label="Agrupar x dia", value=True)
-        else:
-            self.controller.consulta.is_agrupar_x_dia_gui = False
+        dias_consultados = (self.controller.consulta.fecha_final - self.controller.consulta.fecha_inicial).days
+        max_dias_consulta = self.controller.coleccion_info_dic.get(self.controller.consulta.coleccion_id).max_dias
+
+        es_mas_de_un_mes = dias_consultados > max_dias_consulta
+
+        # Dibuja las opciones para agrupar los datos
+        self.dibujar_opc_agrupar(es_mas_de_un_mes)
 
         self.btn_buscar_gui = st.button('Consultar')
         datos_encontrados = False
 
         if self.btn_buscar_gui:
             # Valida los tiempos maximos de consulta y notifica
-            dias_consultados = (self.controller.consulta.fecha_final - self.controller.consulta.fecha_inicial).days
-            max_dias_consulta = self.controller.coleccion_info_dic.get(self.controller.consulta.coleccion_id).max_dias
-
             if dias_consultados > max_dias_consulta:
                 mensaje_respuesta = f"La consulta excede el máximo de {max_dias_consulta} días que permite XM. Tomará un poco más de tiempo su construcción"
                 st.warning(mensaje_respuesta)
@@ -200,14 +221,14 @@ class MainView:
                     datos_encontrados = True
             if datos_encontrados:
                 progreso_barra.progress(50)
-                # Si se selecciona el control de valores diarios
-                if self.controller.consulta.is_agrupar_x_dia_gui:
-                    try:
-                        progreso_barra.progress(60)
-                        resultados_df = self.controller.agrupar_horas_dias(resultados_df)
-                    except ValueError as ex:
-                        # Muestra el mensaje en pantalla
-                        st.error(str(ex))
+                # Agrupa los resultados cuando aplica
+                try:
+                    st.spinner(text="Agrupando los resultados...")
+                    resultados_df = self.controller.agrupar_valores_resultados(resultados_df)
+                    progreso_barra.progress(60)
+                except ValueError as ex:
+                    # Muestra el mensaje en pantalla
+                    st.error(str(ex))
 
                 # Ajusta columnas para facilitar el dibujo de las graficas
                 resultados_df = self.ajustar_dataframe_resultado(resultados_df)

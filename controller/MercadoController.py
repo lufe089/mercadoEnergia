@@ -63,6 +63,14 @@ class MercadoController:
         # output_df.set_index('Date', inplace=True)
         return output_df
 
+    def agrupar_valores_resultados(self, input_df):
+
+        if self.consulta.opc_agrup_result == "Dia":
+            return self.agrupar_horas_dias(input_df)
+        elif self.consulta.opc_agrup_result == "Ninguno":
+            return input_df
+
+
     def consultar_metricas_XM(self):
         return self.apiXML.inventario_metricas
 

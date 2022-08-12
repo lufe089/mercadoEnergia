@@ -35,17 +35,31 @@ class MercadoController:
 
 
     def sumar_valores_hora(self, fila):
+        # Obtener la unidad de medida de la metrica pues de eso depende si el cálculo agregado se debe hacer en suma o en promedio
+        unidad_medida = self.coleccion_info_dic[self.consulta.coleccion_id].unidades_metrica
+
         """ Suma las columnas relacionadas con las horas y retorna el valor diario"""
         suma = 0.0
-
+        cant_real_registros = 0 # Registros reales que tenian numeros para luego hacer el promedio. De lo contrario el valor se afectaria
+        valor_retorno = 0.0
         # Suma las columnas de  las horas desde la hora 1 hasta la hora 24 aprovechando el indice que propone pandas
         for i in range(2, 26):
             # Algunos de los datos no son de tipo entero por ejemplo hay N/A en ese caso no se suman
             if  isinstance(fila[i],int) or isinstance(fila[i],float) :
                 suma = suma + fila[i]
-        return suma
+                cant_real_registros += 1
+
+        if unidad_medida == '$/kWh' or unidad_medida == '$':
+            # Metricas relacionadas con dinero deben tener calculos acumulados diarios que correspondan al promedio de los valores consignados
+            valor_retorno = suma/ cant_real_registros
+        else:
+            # Metricas que no se relacionen con dinero deben tener cálculos acumulados diarios que correspondan a la suma de todos los valores reportados.
+            valor_retorno = suma
+        return float(valor_retorno)
 
     def agrupar_horas_dias(self,input_df):
+
+
         # Limpiar datos para quitar NaN
         output_df = input_df.fillna(value=0)
 

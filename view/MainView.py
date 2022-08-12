@@ -146,8 +146,12 @@ class MainView:
 
     def __ajustar_decimales_y_miles(self,value):
         value = round(value, 2)
-        formated_value = "{:,}".format(value).replace(',', '~').replace('.', ',').replace('~', '')
-        return formated_value
+
+        # Esta parte se comenta porque al convertirlo se vuelve cadena, y entonces ya no permite hacer el orde
+
+        #formated_value = "{:,}".format(value).replace(',', '~').replace('.', ',').replace('~', '')
+        #formated_value= float(formated_value)
+        return value
 
 
     def ajustar_dataframe_resultado(self,df):
@@ -158,12 +162,16 @@ class MainView:
         if 'Values_code' in df.columns:
             # chart_data.loc[:,'Name'] = df.loc[:,'Values_code']
             df.rename(columns={'Values_code': 'Name'}, inplace=True)
+
+
         if 'Code' in df.columns:
             # chart_data.loc[:,'Name'] = df.loc[:,'Values_code']
             df.rename(columns={'Code': 'Name'}, inplace=True)
 
-        # convierte el . en , para interpretar la parte decimal como se hace en español
-        df['Value'] = df['Value'].apply(lambda x: self.__ajustar_decimales_y_miles(x))
+        # Si el resultado tiene un campo para los valores, hace los ajustes para que vuelva las , puntos y viceversa
+        if 'Value' in df.columns:
+            df['Value'] = df['Value'].apply(lambda x: self.__ajustar_decimales_y_miles(x))
+            pd.to_numeric(df['Value'])
         return df
 
     def dibujar_opc_agrupar(self, es_mas_de_un_mes):

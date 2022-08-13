@@ -47,6 +47,7 @@ class MainView:
 
     def convertir_df(self, df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
+        # Muy importante que tengamos el separador como , por lo mismo
         return df.to_csv(encoding = 'utf-8', decimal=',')
 
     def _dibujar_lista_metricas(self):
@@ -149,7 +150,7 @@ class MainView:
 
         # Esta parte se comenta porque al convertirlo se vuelve cadena, y entonces ya no permite hacer el orde
 
-        #formated_value = "{:,}".format(value).replace(',', '~').replace('.', ',').replace('~', '')
+        #value = "{:,}".format(value).replace(',', '~').replace('.', ',').replace('~', '')
         #formated_value= float(formated_value)
         return value
 
@@ -171,7 +172,7 @@ class MainView:
         # Si el resultado tiene un campo para los valores, hace los ajustes para que vuelva las , puntos y viceversa
         if 'Value' in df.columns:
             df['Value'] = df['Value'].apply(lambda x: self.__ajustar_decimales_y_miles(x))
-            pd.to_numeric(df['Value'])
+            s = df.style.format({"Value": lambda x: '{:,.1f}'.format(x)})
         return df
 
     def dibujar_opc_agrupar(self, es_mas_de_un_mes):
@@ -260,8 +261,6 @@ class MainView:
                 st.subheader('Detalles')
                 st.dataframe(data=resultados_df)
                 csv_data = self.convertir_df(resultados_df)
-                # resultados_df = resultados_df[['Daily_Sum']]
-                # st.line_chart(resultados_df)
                 fecha_inicial_string = self.controller.consulta.fecha_inicial.strftime('%d/%m/%Y')
                 fecha_final_string = self.controller.consulta.fecha_final.strftime('%d/%m/%Y')
                 fechas = fecha_final_string + '-' + fecha_inicial_string

@@ -49,7 +49,7 @@ class MercadoController:
                 suma = suma + fila[i]
                 cant_real_registros += 1
 
-        if unidad_medida == '$/kWh' or unidad_medida == '$':
+        if unidad_medida == '$/kWh' or unidad_medida == 'COP' or unidad_medida == 'COP/kWh' or unidad_medida == 'USD/kWh':
             # Metricas relacionadas con dinero deben tener calculos acumulados diarios que correspondan al promedio de los valores consignados
             valor_retorno = suma/ cant_real_registros
         else:

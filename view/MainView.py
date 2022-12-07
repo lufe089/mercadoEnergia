@@ -194,7 +194,7 @@ class MainView:
 
         self.col3.write(f"Tipo de métrica : {self.controller.consulta.metrica_selecccionada.tipo_metrica}")
         self.controller.consulta.fecha_inicial = self.col1.date_input("Fecha inicial", self.controller.consulta.fecha_inicial)
-        self.controller.consulta.fecha_final = self.col2.date_input("Fecha inicial", self.controller.consulta.fecha_final)
+        self.controller.consulta.fecha_final = self.col2.date_input("Fecha final", self.controller.consulta.fecha_final)
 
         dias_consultados = (self.controller.consulta.fecha_final - self.controller.consulta.fecha_inicial).days
         max_dias_consulta = self.controller.coleccion_info_dic.get(self.controller.consulta.coleccion_id).max_dias

@@ -1,4 +1,4 @@
-from streamlit import bootstrap
+from streamlit.web import bootstrap
 
 real_script = 'main.py'
 
